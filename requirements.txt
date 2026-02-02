@@ -1,12 +1,6 @@
-
-
-altair==4.2.2
-
-fastapi
-uvicorn
+streamlit==1.30.0
 scikit-learn
-pandas
 numpy
+pandas
 joblib
-streamlit
-requests
+altair==4.2.2
