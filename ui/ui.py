@@ -1,61 +1,108 @@
-#ui.py
+# ui.py
 
 import streamlit as st
 import requests
+import os
 
-st.set_page_config(page_title = "Sentiment Analyzer", layout = "centered")
+API_URL = os.getenv(
+    "API_URL",
+    "http://127.0.0.1:8000/predict"
+)
 
-st.title("Sentiment Analysis")
-st.write("Enter text below to analyze")
 
+st.set_page_config(
+    page_title="Sentiment Analyzer",
+    layout="centered"
+)
 
-review = st.text_area("Your text", height = 150)
+st.title("Sentiment Analysis System")
+st.write(
+    "Analyze the emotional tone of a review using an explainable AI model."
+)
+
+# -------- Input --------
+review = st.text_area(
+    "Enter a review",
+    height=150,
+    placeholder="Example: The acting was amazing, but the story felt slow and predictable."
+)
 
 word_count = len(review.split())
+if review and word_count < 3:
+    st.warning(
+        "This input is very short. Predictions may be unreliable."
+    )
 
-if word_count < 3:
-    st.warning("This input is very short. The prediction can be very unrealiable because of this")
-
+# -------- Analyze Button --------
 if st.button("Analyze"):
-    if review.strip() == "":
-        st.error("Please enter some text")
+    if not review.strip():
+        st.error("Please enter some text to analyze.")
+        st.stop()
 
-    else:
+    # -------- Call API --------
+    try:
         response = requests.post(
-            "http://127.0.0.1:8000/predict",
-            json = {"review": review}
+            API_URL,
+            json={"review": review},
+            timeout=5
         )
-
         result = response.json()
-        st.write(result)
+    except requests.exceptions.ConnectionError:
+        st.error("Backend API is not running. Please start FastAPI.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Unexpected error: {e}")
+        st.stop()
 
-        if not isinstance(result, dict):
-            st.error("Unexpected response from server.")
+    # -------- Handle API Errors --------
+    if not isinstance(result, dict):
+        st.error("Unexpected response from server.")
+        st.stop()
 
-        elif "error" in result:
-            st.error(result["error"])
+    if "error" in result:
+        st.error(result["error"])
+        st.stop()
 
-        elif "sentiment" in result and "confidence" in result:
-            st.success(f"Sentiment: {result['sentiment']}")
-            # st.info(f"Confidence: {result['confidence']}")
+    # -------- Sentiment Result --------
+    sentiment = result["sentiment"]
+    confidence = result["confidence"]
 
-            if "tone" in result:
-                st.info(f"Tone: {result['tone']}")
+    st.subheader("Prediction")
 
-            confidence = result["confidence"]
-            if confidence <= 0.6:
-                st.warning(f"Low confidence ({confidence}). The model seems to be uncertain")
+    if sentiment == "positive":
+        st.success(f"Positive sentiment")
+    else:
+        st.error(f"Negative sentiment")
 
-            elif confidence <= 0.8:
-                st.warning(f"Moderate confidence ({confidence})")
+    # -------- Confidence Visualization --------
+    st.markdown("**Model confidence**")
+    st.progress(min(confidence, 1.0))
 
-            else:
-                st.warning(f"Highest confidence ({confidence}). The model is pretty certain about its predictions")
+    if confidence < 0.6:
+        st.caption("Low confidence — model is uncertain")
+    elif confidence < 0.8:
+        st.caption("Moderate confidence")
+    else:
+        st.caption("High confidence")
 
-        else:
-            st.error("Malformed response from server.")
-            st.write(result)
+    # -------- Emotional Tone (if present) --------
+    if "tone" in result:
+        st.info(f"Emotional tone detected: **{result['tone']}**")
 
-st.caption(
-    "This model may struggle with mixed emotions, very short answers and sarcastic comments"
-)
+    # -------- Explainability --------
+    if "top_factors" in result and result["top_factors"]:
+        st.subheader("Why this prediction?")
+
+        for word, impact in result["top_factors"]:
+            direction = "positive" if impact > 0 else "negative"
+            st.write(
+                f"• **{word}** pushed the prediction toward **{direction}** sentiment"
+            )
+
+    # -------- Transparency --------
+    with st.expander("⚠️ Model limitations"):
+        st.write(
+            "This model may struggle with sarcasm, mixed emotions, "
+            "very short reviews, or domain-specific language. "
+            "Confidence reflects model certainty, not correctness."
+        )

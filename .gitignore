@@ -1,2 +1,7 @@
 data
 *.csv
+
+__pycache__/
+.env
+evaluation_log.csv
+artifacts/*.pkl
