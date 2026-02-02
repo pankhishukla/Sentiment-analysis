@@ -1,4 +1,5 @@
 #api.py
+#http://127.0.0.1:8000/docs
 
 from fastapi import FastAPI
 import joblib
@@ -21,11 +22,50 @@ model = joblib.load("artifacts/sentiment_model.pkl")
 class ReviewRequest(BaseModel):
     review: str
 
+def calculate_tone(text: str): #Function to calculate the tone based on word contributions
+    cleaned = clean_review(text)
+    vec = vectorizer.transform([cleaned])
+    nonzero_idx = vec.nonzero()[1]
+    
+    feature_names = vectorizer.get_feature_names_out()
+    coefficients = model.coef_[0]
+    
+    positive_contributions = []
+    negative_contributions = []
+    
+    for idx in nonzero_idx:
+        contribution = coefficients[idx] * vec[0, idx]
+        
+        if contribution > 0:
+            positive_contributions.append(contribution)
+        else:
+            negative_contributions.append(abs(contribution))
+    
+    positive_strength = sum(positive_contributions)
+    negative_strength = sum(negative_contributions)
+    
+    if positive_strength == 0 and negative_strength == 0:
+        return "Neutral"
+    
+    conflict_ratio = min(positive_strength, negative_strength) / max(positive_strength, negative_strength)
+    
+    if conflict_ratio > 0.4:
+        tone = "Mixed Emotion"
+    elif positive_strength > 0.7:
+        tone = "Positive Emotion"
+    elif negative_strength > 0.7:
+        tone = "Negative Emotion"
+    else:
+        tone = "Neutral"
+    
+    return tone
+
 def predict_sentiment(text: str): #This function mandatorily takes the input as text and in string datatype it is type hint, not a rule
     if not isinstance(text, str) or text.strip() == "": #Checks if the input is actually text or not, without this the API throws an error
         return{"error" : "Invalid Input"} #Stops the model early
     
-    vec = vectorizer.transform([text]) #This converts the text to numbers 
+    cleaned = clean_review(text) #This passes the text through the clean_Review text and saves it to a variable named cleaned
+    vec = vectorizer.transform([cleaned]) #This converts the text to numbers 
     # prob = model.predict_proba(vec)[0][1] #model.predict_proba(vec) means that it will return soemthing like [[0.18, 0.82]] and it says like it is 18% confident that it is negative and 82% confident that it is positive because [0][1] is [negative][positive]
 
     # return{
@@ -39,11 +79,35 @@ def predict_sentiment(text: str): #This function mandatorily takes the input as 
 
     sentiment = "positive" if positive_prob > 0.5 else "negative"
     confidence = max(positive_prob, negative_prob)
+    tone = calculate_tone(text)
 
     return {
         "sentiment" : sentiment,
-        "confidence" : round(confidence, 3)
+        "confidence" : round(confidence, 3),
+        "tone" : tone
     }
+
+def explain_prediction(text: str): #explaining one prediction
+    cleaned = clean_review(text) #cleans the input text
+    vec = vectorizer.transform([cleaned]) #converts the cleaned text in a TF-IDF vector
+
+    feature_names = vectorizer.get_feature_names_out() #gets the list of words corresponding to tf-idf columns
+    coefficients = model.coef_[0] #attributes ending with _ are learned during the training,[0] extracting the first and only row
+
+    nonzero_idx = vec.nonzero()[1] #finding the indices of words that actually appear in the review. We need this because we just want to explain the words that were present
+
+    contributions = [] #Creating a list to store the word impacts
+
+    for idx in nonzero_idx: #this loops through each word present in the review
+        word = feature_names[idx] #The actual word
+        weight = coefficients[idx] #The model's opinion about the word
+        value = vec[0, idx] #how strongly does the word appear (tf-idf)
+        contributions.append((word, weight * value)) #This is contributions = importance x presence
+
+    contributions.sort(key=lambda x: abs(x[1]), reverse=True) #Sorts out by the impact strength
+
+    return contributions[:5] #This returns the top 5 most influential words
+
 
 
 #The below given endpoint is just doing a simple job that is making a prediction and then logging what actually happened.
@@ -93,34 +157,15 @@ def predict(data: ReviewRequest): #This automatically validates the input
     prediction = predict_sentiment(data.review) #Core prediction, and this runs the inference on the input text
     explanation = explain_prediction(data.review) #This computes why the model made the prediction, basically the reason for the answer
 
+    if "error" in prediction:
+        return prediction
+    
     return {
         **prediction, #** is the dictionary unpacking operator, this takes up all the key-value pairs from the dictionary and spread them into a new dictionary
-
         "top_factors": explanation #add the explaination data
     }
 
 
-
-def explain_prediction(text: str): #explaining one prediction
-    cleaned = clean_review(text) #cleans the input text
-    vec = vectorizer.transform([cleaned]) #converts the cleaned text in a TF-IDF vector
-
-    feature_names = vectorizer.get_feature_names_out() #gets the list of words corresponding to tf-idf columns
-    coefficients = model.coef_[0] #attributes ending with _ are learned during the training,[0] extracting the first and only row
-
-    nonzero_idx = vec.nonzero()[1] #finding the indices of words that actually appear in the review. We need this because we just want to explain the words that were present
-
-    contributions = [] #Creating a list to store the word impacts
-
-    for idx in nonzero_idx: #this loops through each word present in the review
-        word = feature_names[idx] #The actual word
-        weight = coefficients[idx] #The model's opinion about the word
-        value = vec[0, idx] #how strongly does the word appear (tf-idf)
-        contributions.append((word, weight * value)) #This is contributions = importance x presence
-
-    contributions.sort(key=lambda x: abs(x[1]), reverse=True) #Sorts out by the impact strength
-
-    return contributions[:5] #This returns the top 5 most influential words
 
 
 

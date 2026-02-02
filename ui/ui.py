@@ -39,15 +39,18 @@ if st.button("Analyze"):
             st.success(f"Sentiment: {result['sentiment']}")
             # st.info(f"Confidence: {result['confidence']}")
 
+            if "tone" in result:
+                st.info(f"Tone: {result['tone']}")
+
             confidence = result["confidence"]
             if confidence <= 0.6:
-                st.warning(f"Low confidence ({'confidence'}). The model seems to be uncertain")
+                st.warning(f"Low confidence ({confidence}). The model seems to be uncertain")
 
             elif confidence <= 0.8:
-                st.warning(f"Moderate confidence ({'confidence'})")
+                st.warning(f"Moderate confidence ({confidence})")
 
             else:
-                st.warning(f"Highest confidence ({'confidence'}). The model is pretty certain about its predictions")
+                st.warning(f"Highest confidence ({confidence}). The model is pretty certain about its predictions")
 
         else:
             st.error("Malformed response from server.")

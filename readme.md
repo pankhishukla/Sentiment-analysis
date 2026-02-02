@@ -58,16 +58,22 @@ An evaluation endpoint logs predictions along with known ground-truth labels:
 These logs can be analyzed later to study errors, bias, and confidence calibration.
 
 7. Limitations
+
 - The model uses a bag-of-words representation and does not understand context or word order
 - Sarcasm, irony, and mixed sentiments may be misclassified
 - Explanations reflect statistical correlations, not true human reasoning
 - Confidence scores indicate model certainty, not correctness
 - Performance depends on the domain and quality of training data
 
-Open 2 terminals:
-run 2 commands separetly
-uvicorn api:app --reload
-streamlit run ui.py
+8. Open 2 terminals:
+
+run 2 commands separately on each terminal
+> uvicorn api:app --reload 
+> streamlit run ui.py
 
 
-Datasets used
+9. Datasets used
+
+The link is as given below
+IMDB Dataset from Kaggle
+https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews
