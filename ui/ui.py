@@ -119,7 +119,9 @@
 
 import streamlit as st
 import joblib
-from src.utils import clean_review  # adjust if utils.py is elsewhere
+# from src.utils import clean_review  # adjust if utils.py is elsewhere
+from utils import clean_review
+
 
 # Load model artifacts
 vectorizer = joblib.load("artifacts/tfidf_vectorizer.pkl")
