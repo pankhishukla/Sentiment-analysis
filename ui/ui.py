@@ -117,15 +117,43 @@
 
 # ui.py
 
+import sys
+import os
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(ROOT_DIR)
+
 import streamlit as st
 import joblib
-# from src.utils import clean_review  # adjust if utils.py is elsewhere
 from utils import clean_review
-
 
 # Load model artifacts
 vectorizer = joblib.load("artifacts/tfidf_vectorizer.pkl")
 model = joblib.load("artifacts/sentiment_model.pkl")
+
+
+def explain_prediction(text, top_k=5):
+    cleaned = clean_review(text)
+    vec = vectorizer.transform([cleaned])
+
+    feature_names = vectorizer.get_feature_names_out()
+    coefficients = model.coef_[0]
+
+    nonzero_idx = vec.nonzero()[1]
+
+    contributions = []
+
+    for idx in nonzero_idx:
+        word = feature_names[idx]
+        tfidf_value = vec[0, idx]
+        weight = coefficients[idx]
+
+        impact = weight * tfidf_value
+        contributions.append((word, impact))
+
+    contributions.sort(key=lambda x: abs(x[1]), reverse=True)
+
+    return contributions[:top_k]
 
 
 def predict_sentiment(text: str):
@@ -164,6 +192,8 @@ if st.button("Analyze"):
         st.stop()
 
     sentiment, confidence = predict_sentiment(review)
+    top_factors = explain_prediction(review)
+
 
     st.subheader("Prediction")
 
@@ -187,3 +217,15 @@ if st.button("Analyze"):
             "This model may struggle with sarcasm, mixed emotions, "
             "very short reviews, or domain-specific language."
         )
+
+if top_factors:
+    st.subheader("Why this prediction?")
+
+    for word, impact in top_factors:
+        direction = "positive" if impact > 0 else "negative"
+        st.write(
+            f"• **{word}** pushed the prediction toward **{direction}** sentiment"
+        )
+
+
+
