@@ -78,8 +78,8 @@ These logs can be analyzed later to study errors, bias, and confidence calibrati
 8. Open 2 terminals:
 
 run 2 commands separately on each terminal
-- uvicorn api:app --reload 
-- streamlit run ui.py
+- uvicorn src.api:app --reload 
+- streamlit run ui/ui.py
 
 
 9. Datasets used

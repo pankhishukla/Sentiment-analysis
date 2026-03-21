@@ -42,7 +42,7 @@ df.to_csv("cleaned_imdb.csv", index=False) #all the cleaned reviews will be stor
 # df.head() #displays the firt few rows of the dataframe
 
 vectorizer = TfidfVectorizer(
-    max_features = 2000, #Limits the vocabulary size to 3000 most important words
+    max_features = 2000, #Limits the vocabulary size to 2000 most important words
     ngram_range = (1, 1) #Can take up 1 word (good) and 2 word(not-good) phrases for reviews #Currently shifting it to unigrams
 )
 

@@ -80,9 +80,9 @@ if st.button("Analyze"):
     st.subheader("Prediction")
 
     if sentiment == "positive":
-        st.success("😊 Positive sentiment")
+        st.success("Positive sentiment :)")
     else:
-        st.error("😞 Negative sentiment")
+        st.error("Negative sentiment :(")
 
     st.markdown("**Model confidence**")
     st.progress(min(confidence, 1.0))
@@ -102,8 +102,8 @@ if st.button("Analyze"):
                 f"• **{word}** pushed the prediction toward **{direction}** sentiment"
             )
 
-    with st.expander("⚠️ Model limitations"):
+    with st.expander("⚠️Model limitations"):
         st.write(
             "This model may struggle with sarcasm, mixed emotions, "
-            "very short reviews, or domain-specific language."
+            "very short reviews or domain-specific language."
         )
