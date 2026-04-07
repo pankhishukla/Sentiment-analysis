@@ -2,6 +2,26 @@
 
 import sys
 import os
+import streamlit.components.v1 as components  # allows injecting HTML/JS
+
+# Replace with your actual GA Measurement ID
+GA_ID = "G-62DG2VMB1C"
+
+# Inject Google Analytics script into the page
+components.html(
+    f"""
+    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){{dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{GA_ID}', {{
+            page_path: window.location.pathname
+        }});
+    </script>
+    """,
+    height=0
+)
 
 # ---- Fix Python path so root files are importable ----
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
