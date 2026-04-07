@@ -11,19 +11,17 @@ st.set_page_config(page_title="Sentiment Analyzer", layout="centered")
 # 👇 THEN add GA code AFTER this
 GA_ID = "G-62DG2VMB1C"
 
-components.html(
+st.markdown(
     f"""
     <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){{dataLayer.push(arguments);}}
         gtag('js', new Date());
-        gtag('config', '{GA_ID}', {{
-            page_path: window.location.pathname
-        }});
+        gtag('config', '{GA_ID}');
     </script>
     """,
-    height=0
+    unsafe_allow_html=True
 )
 
 # ---- Fix Python path so root files are importable ----
