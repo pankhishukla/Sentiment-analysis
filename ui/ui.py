@@ -3,32 +3,13 @@
 import sys
 import os
 import streamlit as st
-import streamlit.components.v1 as components
+
 
 # ✅ MUST BE FIRST STREAMLIT COMMAND
 st.set_page_config(page_title="Sentiment Analyzer", layout="centered")
 
-# 👇 THEN add GA code AFTER this
-GA_ID = "G-62DG2VMB1C"
 
-components.html(
-    f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){{dataLayer.push(arguments);}}
-            gtag('js', new Date());
-            gtag('config', '{GA_ID}');
-        </script>
-    </head>
-    <body></body>
-    </html>
-    """,
-    height=0,
-)
+
 
 # ---- Fix Python path so root files are importable ----
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
