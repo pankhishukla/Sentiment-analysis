@@ -2,12 +2,15 @@
 
 import sys
 import os
-import streamlit.components.v1 as components  # allows injecting HTML/JS
+import streamlit as st
+import streamlit.components.v1 as components
 
-# Replace with your actual GA Measurement ID
+# ✅ MUST BE FIRST STREAMLIT COMMAND
+st.set_page_config(page_title="Sentiment Analyzer", layout="centered")
+
+# 👇 THEN add GA code AFTER this
 GA_ID = "G-62DG2VMB1C"
 
-# Inject Google Analytics script into the page
 components.html(
     f"""
     <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
