@@ -75,7 +75,7 @@ def explain_prediction(text, top_k=5):
 
 
 # ---- Streamlit UI ----
-st.set_page_config(page_title="Sentiment Analyzer", layout="centered")
+# st.set_page_config(page_title="Sentiment Analyzer", layout="centered")
 
 st.title("Sentiment Analysis System")
 st.write("Analyze the emotional tone of a review using an explainable AI model.")
